@@ -1,128 +1,110 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct procs
+struct procInfo
 {
     char name[255];
     int arrival;
     int burst;
+    int done;
 };
 
-void readProcesses(FILE* ifp, int numProc, struct procs *processes);
-void readInputs(FILE *ifp, int* numProc, int* timeUnits, char* type, int* quantum, int* qCheck);
-void readMore(FILE *ifp);
+void roundRobin(int proCount, int timeUnit, int quantum, struct procInfo *procs);
+void fcfs();
+void sjf();
+
+void readFile(FILE* ifp, int proCount, int timeUnit, int quantum, char* type, struct procInfo *procs);
+void readMore(FILE* ifp);
 
 int main()
 {
-    // replace with your test file
-    // need an output file before submitting
     FILE* ifp = fopen("/Users/trentfreeman/Desktop/processes.in", "r");
-    char type[5], buff[255];
-    int numProc, timeUnits, quantum = -1, qCheck = 0;
+    int proCount, timeUnit, quantum;
+    char type[5];
 
-    // Used to read the file and store input
-    readInputs(ifp, &numProc, &timeUnits, &type, &quantum, &qCheck);
-
-    // Prints out data
-    printf("%d processes\n", numProc);
-    if(strcmp(type, "rr") == 0)
-        printf("Using Round-Robin\nQuantum %d\n", quantum);
-    else if(strcmp(type, "fcfs") == 0)
-        printf("Using First Come First Serve\n");
-    else if(strcmp(type, "sjf") == 0)
-        printf("Using Shortest Job First\n");
-
-    struct procs processes[numProc];
-    //readProcesses(ifp, numProc, &processes);
-
-    int i;
-
-
-    printf("Looping through %d procs\n", numProc);
-    
-    // doesn't correctly read through the processes yet
-    for(i = 0; i < numProc; i++)
-    {
-
-        fscanf(ifp, "%s", buff);
-        printf("%s", buff);
-//        printf("Process #%d:\n", i);
-//        printf("\tName: %s\nArrival time: %d\nBurst: %d", processes[i].name, processes[i].arrival, processes[i].burst);
-
-    }
-
-}
-
-void readProcesses(FILE* ifp, int numProc, struct procs *processes)
-{
-    char buff[255], newline = (int) 10;
-    int i;
-
-    printf("Looping through %d procs", numProc);
-    for(i = 0; i < numProc; i++)
-    {
-        fscanf(ifp, "%s", buff);
-        printf("%s", buff);
-        fscanf(ifp, "%s", buff);
-        fscanf(ifp, "%s", processes[i].name);
-        fscanf(ifp, "%s", buff);
-        fscanf(ifp, "%s", processes[i].arrival);
-        fscanf(ifp, "%s", buff);
-        fscanf(ifp, "%s", processes[i].burst);
-    }
-
-}
-
-void readInputs(FILE* ifp, int* numProc, int* timeUnits, char* type, int* quantum, int* qCheck)
-{
     char buff[255];
-    char hash = (int) 35;
-    int tempI;
+    fscanf(ifp, "%s", buff);
+    fscanf(ifp, "%d", &proCount);
+    readMore(ifp);
+
+    struct procInfo procs[proCount];
+    readFile(ifp, proCount, &timeUnit, &quantum, type, &procs);
+
+    if(strcmp(type, "rr") == 0)
+        roundRobin(proCount, timeUnit, quantum, procs);
+
+}
+
+void roundRobin(int proCount, int timeUnit, int quantum, struct procInfo *procs)
+{
+
+}
+
+void fcfs()
+{
+
+}
+
+void sjf()
+{
+
+
+}
+
+void readFile(FILE* ifp, int proCount, int timeUnit, int quantum, char* type, struct procInfo *procs)
+{
+
+    char buff[255];
 
     fscanf(ifp, "%s", buff);
-    fscanf(ifp, "%d", &tempI);
-    *numProc = tempI;
-
-    fscanf(ifp, "%s", buff);
-    if(buff[0] == hash)
-        readMore(ifp);
-
-    fscanf(ifp, "%s", buff);
-    fscanf(ifp, "%d", &tempI);
-    *timeUnits = tempI;
-
-    fscanf(ifp, "%s", buff);
-    if(buff[0] == hash)
-        readMore(ifp);
+    fscanf(ifp, "%d", &timeUnit);
+    readMore(ifp);
 
     fscanf(ifp, "%s", buff);
     fscanf(ifp, "%s", type);
+    readMore(ifp);
+
+    printf("%d processes\n", proCount);
+    if(strcmp(type, "rr") == 0)
+        printf("Using Round Robin\n");
+    else if(strcmp(type, "fcfs") == 0)
+        printf("Using First Come First Served\n");
+    else
+        printf("Using Shortest Job First\n");
+
 
     if(strcmp(type, "rr") == 0)
-        qCheck = 1;
-
-    fscanf(ifp, "%s", buff);
-        readMore(ifp);
-
-    if(qCheck)
     {
         fscanf(ifp, "%s", buff);
-        fscanf(ifp, "%d", &tempI);
-        *quantum = tempI;
+        fscanf(ifp, "%d", &quantum);
+        printf("Quantum %d\n", quantum);
+        readMore(ifp);
+    }
+    else
+        readMore(ifp);
+
+    int i;
+
+    for(i = 0; i < proCount; i++)
+    {
+        fscanf(ifp, "%s", buff);
+        fscanf(ifp, "%s", buff);
+        fscanf(ifp, "%s", procs[i].name);
+        fscanf(ifp, "%s", buff);
+        fscanf(ifp, "%d", &procs[i].arrival);
+        fscanf(ifp, "%s", buff);
+        fscanf(ifp, "%d", &procs[i].burst);
+
+        printf("\tName is %s\tArrival at %d\tBurst is %d\n", procs[i].name, procs[i].arrival, procs[i].burst);
     }
 
-    fscanf(ifp, "%s", buff);
-    if(buff[0] == hash)
-        readMore(ifp);
 
 }
 
-void readMore(FILE *ifp)
+void readMore(FILE* ifp)
 {
-
-    char c, newline = (int) 10;
+    char c, newline = 10;
+    fscanf(ifp, "%c", &c);
     while(c != newline)
         fscanf(ifp, "%c", &c);
-
-    return;
 }
