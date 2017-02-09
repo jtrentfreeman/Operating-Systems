@@ -10,7 +10,7 @@ struct procInfo
 };
 
 void roundRobin(int proCount, int timeUnit, int quantum, struct procInfo *procs);
-void fcfs();
+void fcfs(int proCount, int timeUnit, struct procInfo *procs);
 void sjf();
 
 void readFile(FILE* ifp, int proCount, int timeUnit, int quantum, char* type, struct procInfo *procs);
@@ -32,6 +32,8 @@ int main()
 
     if(strcmp(type, "rr") == 0)
         roundRobin(proCount, timeUnit, quantum, procs);
+    else if(strcmp(type, "fcfs") == 0)
+        fcfs(int proCount, int timeUnit, struct procInfo *procs);
 
 }
 
