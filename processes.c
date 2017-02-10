@@ -238,7 +238,7 @@ void fcfs(struct fileInfo fileData, struct procInfo *procData)
         }
     }
 
-    fprintf(fptr, "Finished at time %d", fileData.runFor);
+    fprintf(fptr, "Finished at time %d\n\n", fileData.runFor);
     for(i = 0; i < fileData.proCount; i++)
         fprintf(fptr, "%s wait %d turnaround %d\n", procData[i].name, procData[i].selected - procData[i].arrival,
                                                     procData[i].done - procData[i].arrival);
