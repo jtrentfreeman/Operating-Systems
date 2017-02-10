@@ -67,120 +67,130 @@ void roundRobin(struct fileInfo fileData, struct procInfo *procData)
     fprintf(fptr,"Quantum %d\n\n", fileData.quantum);
     int i, j, k, tQuantum = 0;
 
-    // lazy queue
-    struct procInfo procQ[fileData.proCount];
+     int i, j, k;
+    int tQuantum = 0;
 
-    // keep track of which process is selected
-    // may end up tracking that in the struct instead
-    struct procInfo selected;
-
-    // set a null struct
+    struct procInfo procQueue[fileData.proCount+1];
+    struct procInfo activeP;
     struct procInfo empty;
+
     strcpy(empty.name, "empty");
     empty.arrival = -1;
     empty.burst = -1;
+    empty.selected = -1;
+    empty.done = -1;
 
     // initialize the queue
-    for(i = 0; i < fileData.proCount; i++)
-        procQ[i] = empty;
+    for(i = 0; i < fileData.proCount+1; i++)
+        procQueue[i] = empty;
 
-    // Run each time unit
     for(i = 0; i < fileData.runFor; i++)
     {
 
-        // for each process
+        // check for arrival
         for(j = 0; j < fileData.proCount; j++)
         {
-
-            // check if the process has arrived
             if(procData[j].arrival == i)
             {
-                fprintf(fptr,"Time %d: %s arrived\n", i, procData[j].name);
+                printf("Time %d: %s arrived\n", i, procData[j].name);
 
-                // if it's arrived, insert it into the queue
-                for(k = 0; k < fileData.proCount; k++)
+                // once arrived, at to queue
+                for(k = 0; k <= fileData.proCount; k++)
                 {
-
-                    // insert it into the first empty spot of the queue
-                    if(strcmp(procQ[k].name, empty.name) == 0)
+                    if(strcmp(procQueue[k].name, empty.name) == 0)
                     {
-                        strcpy(procQ[k].name, procData[j].name);
-                        break;
+                        procQueue[k] = procData[j];
+                        k = fileData.proCount+1;
                     }
                 }
             }
         }
 
-/** I WILL NEED TO CHANGE THIS SO ALL QUANTUMS ARE ABLE TO BE USED **/
-/** While loop >1 ? **/
-
-        // decrease selected process burst by 1
-        if(tQuantum >= 2)
+        // quantum 0 :
+        //   select process
+	//   rotate queue
+        //   decrease burst of process
+        //   reset tQuantum
+        //   decrease tQuantum
+        if(tQuantum == 0)
         {
-            // find the selected processes and decrease its burst, each time unit
-            for(j = 0; j < fileData.proCount; j++)
+            // set the active process
+            activeP = procQueue[0];
+
+            // if there is no active process, IDLE
+            if(strcmp(procQueue[0].name, empty.name) == 0)
             {
-                if(procData[j].selected == 1)
-                    procData[j].burst--;
+                printf("Time %d: IDLE\n", i);
+                break;
             }
 
-            // decrease the quantum
+            // if there is an active process, mark it
+            else
+                printf("Time %d: %s selected (burst %d)\n", i, procQueue[0].name, procQueue[0].burst);
+
+            if(activeP.burst > 0)
+                procQueue[fileData.proCount-1] = activeP;
+            else
+                procQueue[fileData.proCount-1] = empty;
+
+            // rotate the queue
+            for(j = 0; j < fileData.proCount-1; j++)
+            {
+                procQueue[j] = procQueue[j+1];
+                printf("%s is now %s\n", procQueue[j].name, procQueue[j+1].name);
+            }
+
+            if(activeP.burst < fileData.quantum)
+                tQuantum = activeP.burst;
+            else
+                tQuantum = fileData.quantum;
+
+            for(j = 0; j < fileData.proCount+1; j++)
+                printf("Queue at %d: %s\n", j, procQueue[j].name);
+
+            activeP.burst--;
             tQuantum--;
         }
 
-        // decrease selected process burst by 1
-        // dequeue and enqueue the process that was selected
+        // quantum 1 :
+        //   add current proc to queue tail if burst > 0
+        //   remove proc from queue head
+        //   decrease burst of current process
+        //   decrease tQuantum
+       /*
         else if(tQuantum == 1)
         {
 
-            // find the selected process and decrease its burst
-            for(j = 0; j < fileData.proCount; j++)
+           // printf("Time %d: Quantum is %d\n", i, tQuantum);
+            activeP.burst--;
+
+            for(k = 0; k < fileData.proCount-1; k++)
             {
-                if(procData[j].selected == 1)
-                    procData[j].burst--;
+                procQueue[k] = procQueue[k+1];
             }
-
-            // reset the quantum
-            tQuantum = 0;
-
-            // dequeue
-            for(j = 0; j < fileData.proCount-1; j++)
-            {
-                procQ[j] = procQ[j+1];
-            }
-
-            // enqueue
-            for(j = 0; j < fileData.proCount-1; j++)
-            {
-                // if it was just selected and still has enough burst, requeue it
-                if(procData[j].selected == 1 && procData[j].burst > 0)
+            if(activeP.burst > 0)
+                for(k = 0; k < fileData.proCount; k++)
                 {
-                    // dont think this works, need to set the queue in a better way
-                    procQ[fileData.proCount-1] = procData[j];
-
-                    // unselect the process
-                    procData[j].selected = 0;
+                    if(strcmp(procQueue[k].name, empty.name) == 0)
+                        procQueue[k] = activeP;
                 }
-            }
-        }
 
-        // select the process to run
-        else if(tQuantum == 0)
+                            else
+                procQueue[fileData.proCount-1] = empty;
+
+            tQuantum--;
+
+
+        } */
+        else
         {
-            for(j = 0; j < fileData.proCount; j++)
-            {
-                if(strcmp(procData[j].name, procQ[0].name) == 0)
-                {
-                    procData[j].selected = 1;
-                    fprintf(fptr,"Time %d: %s selected (burst %d)\n", i, procData[j].name, procData[j].burst);
-                }
-            }
-
-            // reset the quantum
-            tQuantum = fileData.quantum;
+           // printf("Time %d: %d\n", i, tQuantum);
+            activeP.burst--;
+            tQuantum--;
         }
-    }
-	fclose(fptr);
+
+
+    }	fclose(fptr);
 }
 
 void fcfs(struct fileInfo fileData, struct procInfo *procData)
