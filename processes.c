@@ -44,27 +44,27 @@ int main()
         procData[i] = readData(ifp);
     }
 
-    printf("%d processes\n", fileData.proCount);
     if(strcmp(fileData.type, "rr") == 0)
     {
-        printf("Using Round-Robin\n");
-        printf("Quantum %d\n\n", fileData.quantum);
         roundRobin(fileData, procData);
     }
     else if(strcmp(fileData.type, "fcfs") == 0)
     {
-        printf("Using First Come First Serve\n\n");
         fcfs(fileData, procData);
     }
     else if(strcmp(fileData.type, "sjf") == 0)
     {
-        printf("Using Shortest Job First\n\n");
         sjf(fileData, procData);
     }
 }
 
 void roundRobin(struct fileInfo fileData, struct procInfo *procData)
 {
+    FILE *fptr;
+    fptr= fopen("processes.out","w");
+    fprintf(fptr, "%d processes\n", fileData.proCount);
+    fprintf(fptr,"Using Round-Robin\n");
+    fprintf(fptr,"Quantum %d\n\n", fileData.quantum);
     int i, j, k, tQuantum = 0;
 
     // lazy queue
@@ -95,7 +95,7 @@ void roundRobin(struct fileInfo fileData, struct procInfo *procData)
             // check if the process has arrived
             if(procData[j].arrival == i)
             {
-                printf("Time %d: %s arrived\n", i, procData[j].name);
+                fprintf(fptr,"Time %d: %s arrived\n", i, procData[j].name);
 
                 // if it's arrived, insert it into the queue
                 for(k = 0; k < fileData.proCount; k++)
@@ -172,7 +172,7 @@ void roundRobin(struct fileInfo fileData, struct procInfo *procData)
                 if(strcmp(procData[j].name, procQ[0].name) == 0)
                 {
                     procData[j].selected = 1;
-                    printf("Time %d: %s selected (burst %d)\n", i, procData[j].name, procData[j].burst);
+                    fprintf(fptr,"Time %d: %s selected (burst %d)\n", i, procData[j].name, procData[j].burst);
                 }
             }
 
@@ -180,6 +180,7 @@ void roundRobin(struct fileInfo fileData, struct procInfo *procData)
             tQuantum = fileData.quantum;
         }
     }
+	fclose(fptr);
 }
 
 void fcfs(struct fileInfo fileData, struct procInfo *procData)
@@ -242,6 +243,10 @@ void fcfs(struct fileInfo fileData, struct procInfo *procData)
 
 void sjf(struct fileInfo fileData, struct procInfo *procData)
 {
+	FILE *fptr;
+	fptr= fopen("processes.out","w");
+	fprintf(fptr, "%d processes\n", fileData.proCount);
+	fprintf(fptr,"Using Shortest Job First (Pre)\n\n");
 	int x,y,z,p;
 	int q=100;
 	int w=0;
@@ -264,31 +269,32 @@ void sjf(struct fileInfo fileData, struct procInfo *procData)
 				w++;
 			}
 			if(procData[y].arrival==x)
-				printf("Time %d: %s arrived\n", x, procData[y].name);
+				fprintf(fptr,"Time %d: %s arrived\n", x, procData[y].name);
 			
 		}
 		z=1000;
 		if(w==fileData.proCount)
-			printf("Time %d: IDLE\n",x);
+			fprintf(fptr,"Time %d: IDLE\n",x);
 		w=0;
 		if(p!=q){
-			printf("Time %d: %s selected (burst %d)\n",x, procData[p].name, procData[p].burst);
+			fprintf(fptr,"Time %d: %s selected (burst %d)\n",x, procData[p].name, procData[p].burst);
 		}
 		//printf("Time %d: %s arrived\n", x, procData[p].name);
 		q=p;
 		procData[p].burst--;
 		if(procData[p].burst==0){
-			printf("Time %d: %s finished\n", x+1, procData[p].name);
+			fprintf(fptr,"Time %d: %s finished\n", x+1, procData[p].name);
 			end[p]=x+1;
 		}
 	}
-	printf("Finished at time %d\n\n", x);
+	fprintf(fptr,"Finished at time %d\n\n", x);
 	
 	for(y=0;y<fileData.proCount;y++){
 		z=end[y]-procData[y].arrival;
 		p=z-burst[y];
-		printf("%s wait %d turnaround %d\n",procData[y].name, p, z);
+		fprintf(fptr,"%s wait %d turnaround %d\n",procData[y].name, p, z);
 	}
+	fclose(fptr);
 	
 	
 }
