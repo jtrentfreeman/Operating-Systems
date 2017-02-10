@@ -210,7 +210,7 @@ void fcfs(struct fileInfo fileData, struct procInfo *procData)
     fptr = fopen("processes.out", "w");
     fprintf(fptr, "%d processes\n", fileData.proCount);
     fprintf(fptr, "Using First Come First Served\n\n");
-    
+
     int i, j;
 
     // Check if valid first to avoid errors?
@@ -238,6 +238,10 @@ void fcfs(struct fileInfo fileData, struct procInfo *procData)
     }
 
     fprintf(fptr, "Finished at time %d", fileData.runFor);
+    for(i = 0; i < fileData.proCount; i++)
+        fprintf(fptr, "%s wait %d turnaround %d\n", procData[i].name, procData[i].selected - procData[i].arrival,
+                                                    procData[i].done - procData[i].arrival);
+    fclose(fptr);
 }
 
 void sjf(struct fileInfo fileData, struct procInfo *procData)
