@@ -185,28 +185,6 @@ void roundRobin(struct fileInfo fileData, struct procInfo *procData)
 
 void fcfs(struct fileInfo fileData, struct procInfo *procData)
 {
-    // Following is basically pseudo code
-    /*for(each process in procInfo struct)
-    {
-       we already have arrival and burst times
-       calculate selection time
-            1st is first process arrival time (not necessarily 0)
-            subsequent will be (previous selection time) + (previous process burst time)
-
-       calculate finish time (if finish time > runFor time, print Px doesn't finish)
-            always (process selection time) + (process burst time)
-    }
-
-     for(use runFor to determine amount of loops (checking each processes info every time unit))
-        for(check each process)
-            if(current time unit == arrival, selection, or finish time)
-                print out corresponding line
-
-     print overall finished time which is equal to runFor
-     print wait and turnaround times for each process
-        wait time = selection time - arrival time
-        turnaround time = finish - arrival
-    */
     FILE *fptr;
     fptr = fopen("processes.out", "w");
     fprintf(fptr, "%d processes\n", fileData.proCount);
