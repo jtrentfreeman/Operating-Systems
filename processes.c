@@ -21,6 +21,8 @@ struct procInfo
 
 void roundRobin(struct fileInfo fileData, struct procInfo *procData);
 void fcfs(struct fileInfo fileData, struct procInfo *procData);
+void sjf(struct fileInfo fileData, struct procInfo *procData);
+int min(int x, int y);
 
 struct fileInfo readFile(FILE* ifp);
 struct procInfo readData(FILE* ifp);
@@ -28,7 +30,7 @@ void readMore(FILE* ifp);
 
 int main()
 {
-    FILE* ifp = fopen("/Users/trentfreeman/Desktop/asn1-sampleio_2/set2_process.in", "r");
+    FILE* ifp = fopen("processes.in", "r");
     int i;
 
     struct fileInfo fileData;
@@ -54,10 +56,10 @@ int main()
         printf("Using First Come First Serve\n\n");
         fcfs(fileData, procData);
     }
-    else
+    else if(strcmp(fileData.type, "sjf") == 0)
     {
         printf("Using Shortest Job First\n\n");
-        //sjf();
+        sjf(fileData, procData);
     }
 }
 
@@ -204,6 +206,62 @@ void fcfs(struct fileInfo fileData, struct procInfo *procData)
         wait time = selection time - arrival time
         turnaround time = 
     */
+}
+
+void sjf(struct fileInfo fileData, struct procInfo *procData)
+{
+	int x,y,z,p;
+	int q=100;
+	int w=0;
+	z=1000;
+	p=0;
+	int end[fileData.proCount];
+	int burst[fileData.proCount];
+	for(y=0;y<fileData.proCount;y++)
+		burst[y]=procData[y].burst;
+	for(x=0;x<fileData.runFor;x++)
+	{
+		for(y=0;y<fileData.proCount;y++)
+		{
+			if(procData[y].arrival<=x&&procData[y].burst>0)
+			{
+				z=min(z,procData[y].burst);
+				if(z==procData[y].burst)
+					p=y;
+			}else{
+				w++;
+			}
+			if(procData[y].arrival==x)
+				printf("Time %d: %s arrived\n", x, procData[y].name);
+			
+		}
+		z=1000;
+		if(w==fileData.proCount)
+			printf("Time %d: IDLE\n",x);
+		w=0;
+		if(p!=q){
+			printf("Time %d: %s selected (burst %d)\n",x, procData[p].name, procData[p].burst);
+		}
+		//printf("Time %d: %s arrived\n", x, procData[p].name);
+		q=p;
+		procData[p].burst--;
+		if(procData[p].burst==0){
+			printf("Time %d: %s finished\n", x+1, procData[p].name);
+			end[p]=x+1;
+		}
+	}
+	printf("Finished at time %d\n\n", x);
+	
+	for(y=0;y<fileData.proCount;y++){
+		z=end[y]-procData[y].arrival;
+		p=z-burst[y];
+		printf("%s wait %d turnaround %d\n",procData[y].name, p, z);
+	}
+	
+	
+}
+int min(int x, int y){
+	return y ^ ((x ^ y) & -(x < y));
 }
 
 struct fileInfo readFile(FILE* ifp)
