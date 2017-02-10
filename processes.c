@@ -1,105 +1,123 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct procInfo
+struct fileInfo
 {
-    char name[255];
-    int arrival;
-    int burst;
-    int done;
+    int proCount;
+    int runFor;
+    char type[5];
+    int quantum;
 };
 
-void roundRobin(int proCount, int timeUnit, int quantum, struct procInfo *procs);
-void fcfs(int proCount, int timeUnit, struct procInfo *procs);
-void sjf();
+struct procInfo
+{
+    char name[50];
+    int arrival;
+    int burst;
+};
 
-void readFile(FILE* ifp, int proCount, int timeUnit, int quantum, char* type, struct procInfo *procs);
+void roundRobin(struct fileInfo fileData, struct procInfo *procData);
+
+struct fileInfo readFile(FILE* ifp);
+struct procInfo readData(FILE* ifp);
 void readMore(FILE* ifp);
 
 int main()
 {
-    FILE* ifp = fopen("/Users/trentfreeman/Desktop/processes.in", "r");
-    int proCount, timeUnit, quantum;
-    char type[5];
-
-    char buff[255];
-    fscanf(ifp, "%s", buff);
-    fscanf(ifp, "%d", &proCount);
-    readMore(ifp);
-
-    struct procInfo procs[proCount];
-    readFile(ifp, proCount, &timeUnit, &quantum, type, &procs);
-
-    if(strcmp(type, "rr") == 0)
-        roundRobin(proCount, timeUnit, quantum, procs);
-    else if(strcmp(type, "fcfs") == 0)
-        fcfs(int proCount, int timeUnit, struct procInfo *procs);
-
-}
-
-void roundRobin(int proCount, int timeUnit, int quantum, struct procInfo *procs)
-{
-
-}
-
-void fcfs()
-{
-
-}
-
-void sjf()
-{
-
-
-}
-
-void readFile(FILE* ifp, int proCount, int timeUnit, int quantum, char* type, struct procInfo *procs)
-{
-
-    char buff[255];
-
-    fscanf(ifp, "%s", buff);
-    fscanf(ifp, "%d", &timeUnit);
-    readMore(ifp);
-
-    fscanf(ifp, "%s", buff);
-    fscanf(ifp, "%s", type);
-    readMore(ifp);
-
-    printf("%d processes\n", proCount);
-    if(strcmp(type, "rr") == 0)
-        printf("Using Round Robin\n");
-    else if(strcmp(type, "fcfs") == 0)
-        printf("Using First Come First Served\n");
-    else
-        printf("Using Shortest Job First\n");
-
-
-    if(strcmp(type, "rr") == 0)
-    {
-        fscanf(ifp, "%s", buff);
-        fscanf(ifp, "%d", &quantum);
-        printf("Quantum %d\n", quantum);
-        readMore(ifp);
-    }
-    else
-        readMore(ifp);
-
+    FILE* ifp = fopen("/Users/trentfreeman/Desktop/asn1-sampleio_2/set1_process.in", "r");
     int i;
 
-    for(i = 0; i < proCount; i++)
-    {
-        fscanf(ifp, "%s", buff);
-        fscanf(ifp, "%s", buff);
-        fscanf(ifp, "%s", procs[i].name);
-        fscanf(ifp, "%s", buff);
-        fscanf(ifp, "%d", &procs[i].arrival);
-        fscanf(ifp, "%s", buff);
-        fscanf(ifp, "%d", &procs[i].burst);
+    struct fileInfo fileData;
 
-        printf("\tName is %s\tArrival at %d\tBurst is %d\n", procs[i].name, procs[i].arrival, procs[i].burst);
+    fileData = readFile(ifp);
+   // printf("%d %d %s %d\n", fileData.proCount, fileData.runFor, fileData.type, fileData.quantum);
+
+    struct procInfo procData[fileData.proCount];
+
+    for(i = 0; i < fileData.proCount; i++)
+    {
+        procData[i] = readData(ifp);
+        //printf("Name = %s\tArrival at %d\tBurst is %d\n", procData[i].name, procData[i].arrival, procData[i].burst);
     }
 
+    printf("%d processes\n", fileData.proCount);
+    if(strcmp(fileData.type, "rr") == 0)
+    {
+        printf("Using Round-Robin\n");
+        printf("Quantum %d\n\n", fileData.quantum);
+        roundRobin(fileData, procData);
+    }
+    else if(strcmp(fileData.type, "fcfs") == 0)
+    {
+        printf("Using First Come First Serve\n\n");
+        //fcfs();
+    }
+    else
+    {
+        printf("Using Shortest Job First\n\n");
+        //sjf();
+    }
+}
+
+void roundRobin(struct fileInfo fileData, struct procInfo *procData)
+{
+    int i, j;
+    for(i = 0; i < fileData.runFor; i++)
+    {
+        for(j = 0; j < fileData.proCount; j++)
+        {
+            if(procData[j].arrival == i)
+                printf("Time %d: %s arrived\n", i, procData[j].name);
+        }
+    }
+}
+
+struct fileInfo readFile(FILE* ifp)
+{
+
+    struct fileInfo tempData;
+    char buff[255], c;
+
+    fscanf(ifp, "%s", buff);
+    fscanf(ifp, "%d", &tempData.proCount);
+    readMore(ifp);
+
+    fscanf(ifp, "%s", buff);
+    fscanf(ifp, "%d", &tempData.runFor);
+    readMore(ifp);
+
+    fscanf(ifp, "%s", buff);
+    fscanf(ifp, "%s", tempData.type);
+    readMore(ifp);
+
+    if(strcmp(tempData.type, "rr") == 0)
+    {
+        fscanf(ifp, "%s", buff);
+        fscanf(ifp, "%d", &tempData.quantum);
+        readMore(ifp);
+    }
+    else
+        readMore(ifp);
+
+    return tempData;
+}
+
+struct procInfo readData(FILE* ifp)
+{
+    struct procInfo tempData;
+    char buff[255], c;
+
+    fscanf(ifp, "%s", buff);
+    fscanf(ifp, "%s", buff);
+    fscanf(ifp, "%s", tempData.name);
+
+    fscanf(ifp, "%s", buff);
+    fscanf(ifp, "%d", &tempData.arrival);
+
+    fscanf(ifp, "%s", buff);
+    fscanf(ifp, "%d", &tempData.burst);
+
+    return tempData;
 
 }
 
