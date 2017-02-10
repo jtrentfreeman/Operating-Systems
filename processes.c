@@ -206,12 +206,16 @@ void fcfs(struct fileInfo fileData, struct procInfo *procData)
         wait time = selection time - arrival time
         turnaround time = finish - arrival
     */
-
+    FILE *fptr;
+    fptr = fopen("processes.out", "w");
+    fprintf(fptr, "%d processes\n", fileData.proCount);
+    fprintf(fptr, "Using First Come First Served\n\n");
+    
     int i, j;
 
     // Check if valid first to avoid errors?
     // Calculate selection times.
-    procData[0].selected = procData.arrival;
+    procData[0].selected = procData[0].arrival;
     for(i = 1; i < fileData.proCount; i++)
         procData[i].selected = procData[i-1].selected + procData[i-1].burst;
 
@@ -220,18 +224,20 @@ void fcfs(struct fileInfo fileData, struct procInfo *procData)
         procData[i].done = procData[i].selected + procData[i].burst;
 
     // Print table
-    for(i = 0; i < fileData.runFor; i++)
+    for(i = 0; i <= fileData.runFor; i++)
     {
         for(j = 0; j < fileData.proCount; j++)
         {
-            if(procData[j].arrived == i)
-                printf("Time %d: %s arrived\n", i, procData[j].name);
-            else if(procData[j].selected == i)
-                printf("Time %d: %s selected (burst %d)\n", i, procData[j].name, procData[j].burst);
-            else if(procData[j].done == i)
-                printf("Time %d: %s finished\n", i, procData[j].name);
+            if(procData[j].arrival == i)
+                fprintf(fptr, "Time %d: %s arrived\n", i, procData[j].name);
+            if(procData[j].selected == i)
+                fprintf(fptr, "Time %d: %s selected (burst %d)\n", i, procData[j].name, procData[j].burst);
+            if(procData[j].done == i)
+                fprintf(fptr, "Time %d: %s finished\n", i, procData[j].name);
         }
     }
+
+    fprintf(fptr, "Finished at time %d", fileData.runFor);
 }
 
 void sjf(struct fileInfo fileData, struct procInfo *procData)
