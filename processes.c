@@ -202,8 +202,34 @@ void fcfs(struct fileInfo fileData, struct procInfo *procData)
      print overall finished time which is equal to runFor
      print wait and turnaround times for each process
         wait time = selection time - arrival time
-        turnaround time = 
+        turnaround time = finish - arrival
     */
+
+    int i, j;
+
+    // Check if valid first to avoid errors?
+    // Calculate selection times.
+    procData[0].selected = procData.arrival;
+    for(i = 1; i < fileData.proCount; i++)
+        procData[i].selected = procData[i-1].selected + procData[i-1].burst;
+
+    // Calculate finish times.
+    for(i = 0; i < fileData.proCount; i++)
+        procData[i].done = procData[i].selected + procData[i].burst;
+
+    // Print table
+    for(i = 0; i < fileData.runFor; i++)
+    {
+        for(j = 0; j < fileData.proCount; j++)
+        {
+            if(procData[j].arrived == i)
+                printf("Time %d: %s arrived\n", i, procData[j].name);
+            else if(procData[j].selected == i)
+                printf("Time %d: %s selected (burst %d)\n", i, procData[j].name, procData[j].burst);
+            else if(procData[j].done == i)
+                printf("Time %d: %s finished\n", i, procData[j].name);
+        }
+    }
 }
 
 struct fileInfo readFile(FILE* ifp)
