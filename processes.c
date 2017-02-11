@@ -17,12 +17,12 @@ struct procInfo
     int burst;
     int selected;
     int done;
+    int wait;
+    int turnAround;
 };
 
 void roundRobin(struct fileInfo fileData, struct procInfo *procData);
 void fcfs(struct fileInfo fileData, struct procInfo *procData);
-void sjf(struct fileInfo fileData, struct procInfo *procData);
-int min(int x, int y);
 
 struct fileInfo readFile(FILE* ifp);
 struct procInfo readData(FILE* ifp);
@@ -40,9 +40,7 @@ int main()
     struct procInfo procData[fileData.proCount];
 
     for(i = 0; i < fileData.proCount; i++)
-    {
         procData[i] = readData(ifp);
-    }
 
     if(strcmp(fileData.type, "rr") == 0)
     {
@@ -52,9 +50,9 @@ int main()
     {
         fcfs(fileData, procData);
     }
-    else if(strcmp(fileData.type, "sjf") == 0)
+    else
     {
-        sjf(fileData, procData);
+        //sjf();
     }
 }
 
@@ -206,6 +204,7 @@ void roundRobin(struct fileInfo fileData, struct procInfo *procData)
     }
 
 }
+
 void fcfs(struct fileInfo fileData, struct procInfo *procData)
 {
     FILE *fptr;
@@ -244,67 +243,6 @@ void fcfs(struct fileInfo fileData, struct procInfo *procData)
         fprintf(fptr, "%s wait %d turnaround %d\n", procData[i].name, procData[i].selected - procData[i].arrival,
                                                     procData[i].done - procData[i].arrival);
     fclose(fptr);
-}
-
-void sjf(struct fileInfo fileData, struct procInfo *procData)
-{
-	FILE *fptr;
-	fptr= fopen("processes.out","w");
-	fprintf(fptr, "%d processes\n", fileData.proCount);
-	fprintf(fptr,"Using Shortest Job First (Pre)\n\n");
-	int x,y,z,p;
-	int q=100;
-	int w=0;
-	z=1000;
-	p=0;
-	int end[fileData.proCount];
-	int burst[fileData.proCount];
-	for(y=0;y<fileData.proCount;y++)
-		burst[y]=procData[y].burst;
-	for(x=0;x<fileData.runFor;x++)
-	{
-		for(y=0;y<fileData.proCount;y++)
-		{
-			if(procData[y].arrival<=x&&procData[y].burst>0)
-			{
-				z=min(z,procData[y].burst);
-				if(z==procData[y].burst)
-					p=y;
-			}else{
-				w++;
-			}
-			if(procData[y].arrival==x)
-				fprintf(fptr,"Time %d: %s arrived\n", x, procData[y].name);
-			
-		}
-		z=1000;
-		if(w==fileData.proCount)
-			fprintf(fptr,"Time %d: IDLE\n",x);
-		w=0;
-		if(p!=q){
-			fprintf(fptr,"Time %d: %s selected (burst %d)\n",x, procData[p].name, procData[p].burst);
-		}
-		//printf("Time %d: %s arrived\n", x, procData[p].name);
-		q=p;
-		procData[p].burst--;
-		if(procData[p].burst==0){
-			fprintf(fptr,"Time %d: %s finished\n", x+1, procData[p].name);
-			end[p]=x+1;
-		}
-	}
-	fprintf(fptr,"Finished at time %d\n\n", x);
-	
-	for(y=0;y<fileData.proCount;y++){
-		z=end[y]-procData[y].arrival;
-		p=z-burst[y];
-		fprintf(fptr,"%s wait %d turnaround %d\n",procData[y].name, p, z);
-	}
-	fclose(fptr);
-	
-	
-}
-int min(int x, int y){
-	return y ^ ((x ^ y) & -(x < y));
 }
 
 struct fileInfo readFile(FILE* ifp)
