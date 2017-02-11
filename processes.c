@@ -61,7 +61,7 @@ int main()
 void roundRobin(struct fileInfo fileData, struct procInfo *procData)
 {
     FILE *fptr;
-    fptr= fopen("/Users/trentfreeman/Desktop/processes.out","w");
+    fptr= fopen("processes.out","w");
     fprintf(fptr, "%d processes\n", fileData.proCount);
     fprintf(fptr,"Using Round-Robin\n");
     fprintf(fptr,"Quantum %d\n\n", fileData.quantum);
