@@ -61,14 +61,13 @@ int main()
 void roundRobin(struct fileInfo fileData, struct procInfo *procData)
 {
     FILE *fptr;
-    fptr= fopen("processes.out","w");
+    fptr= fopen("/Users/trentfreeman/Desktop/processes.out","w");
     fprintf(fptr, "%d processes\n", fileData.proCount);
     fprintf(fptr,"Using Round-Robin\n");
     fprintf(fptr,"Quantum %d\n\n", fileData.quantum);
-    int i, j, k, tQuantum = 0;
 
-     int i, j, k;
-    int tQuantum = 0;
+    int i, j, k;
+    int tQuantum = 0, newArrived = 0;
 
     struct procInfo procQueue[fileData.proCount+1];
     struct procInfo activeP;
@@ -86,6 +85,7 @@ void roundRobin(struct fileInfo fileData, struct procInfo *procData)
 
     for(i = 0; i < fileData.runFor; i++)
     {
+        newArrived = 0;
 
         // check for arrival
         for(j = 0; j < fileData.proCount; j++)
@@ -101,14 +101,21 @@ void roundRobin(struct fileInfo fileData, struct procInfo *procData)
                     {
                         procQueue[k] = procData[j];
                         k = fileData.proCount+1;
+                        newArrived = 1;
                     }
                 }
             }
         }
 
+        // if there is no active process, IDLE
+        if(strcmp(procQueue[0].name, empty.name) == 0)
+        {
+            printf("Time %d: IDLE\n", i);
+            break;
+        }
+
         // quantum 0 :
         //   select process
-	//   rotate queue
         //   decrease burst of process
         //   reset tQuantum
         //   decrease tQuantum
@@ -117,27 +124,18 @@ void roundRobin(struct fileInfo fileData, struct procInfo *procData)
             // set the active process
             activeP = procQueue[0];
 
-            // if there is no active process, IDLE
-            if(strcmp(procQueue[0].name, empty.name) == 0)
+            printf("Time %d: %s selected (burst %d)\n", i, procQueue[0].name, procQueue[0].burst);
+
+            for(j = 0; j < fileData.proCount; j++)
             {
-                printf("Time %d: IDLE\n", i);
-                break;
+                printf("Queue[%d]: %s\n", j, procQueue[j].name);
             }
-
-            // if there is an active process, mark it
-            else
-                printf("Time %d: %s selected (burst %d)\n", i, procQueue[0].name, procQueue[0].burst);
-
-            if(activeP.burst > 0)
-                procQueue[fileData.proCount-1] = activeP;
-            else
-                procQueue[fileData.proCount-1] = empty;
 
             // rotate the queue
             for(j = 0; j < fileData.proCount-1; j++)
             {
                 procQueue[j] = procQueue[j+1];
-                printf("%s is now %s\n", procQueue[j].name, procQueue[j+1].name);
+                //printf("%s is now %s\n", procQueue[j].name, procQueue[j+1].name);
             }
 
             if(activeP.burst < fileData.quantum)
@@ -145,92 +143,34 @@ void roundRobin(struct fileInfo fileData, struct procInfo *procData)
             else
                 tQuantum = fileData.quantum;
 
-            for(j = 0; j < fileData.proCount+1; j++)
-                printf("Queue at %d: %s\n", j, procQueue[j].name);
+            procQueue[0].burst--;
 
             activeP.burst--;
             tQuantum--;
+
+            // if the activeProcess's burst is positive, add it to the queue
+            if(activeP.burst > 0)
+            {
+                for(j = 0; j < fileData.proCount; j++)
+                    if(strcmp(procQueue[j].name, empty.name) == 0)
+                    {
+                        procQueue[j] = activeP;
+                        j = fileData.proCount;
+                    }
+            }
         }
 
-        // quantum 1 :
-        //   add current proc to queue tail if burst > 0
-        //   remove proc from queue head
-        //   decrease burst of current process
-        //   decrease tQuantum
-       /*
-        else if(tQuantum == 1)
-        {
-
-           // printf("Time %d: Quantum is %d\n", i, tQuantum);
-            activeP.burst--;
-
-            for(k = 0; k < fileData.proCount-1; k++)
-            {
-                procQueue[k] = procQueue[k+1];
-            }
-            if(activeP.burst > 0)
-                for(k = 0; k < fileData.proCount; k++)
-                {
-                    if(strcmp(procQueue[k].name, empty.name) == 0)
-                        procQueue[k] = activeP;
-                }
-
-                            else
-                procQueue[fileData.proCount-1] = empty;
-
-            tQuantum--;
-
-
-        } */
         else
         {
            // printf("Time %d: %d\n", i, tQuantum);
+            procQueue[0].burst--;
             activeP.burst--;
             tQuantum--;
         }
 
 
-    }	fclose(fptr);
-}
-
-void fcfs(struct fileInfo fileData, struct procInfo *procData)
-{
-    FILE *fptr;
-    fptr = fopen("processes.out", "w");
-    fprintf(fptr, "%d processes\n", fileData.proCount);
-    fprintf(fptr, "Using First Come First Served\n\n");
-
-    int i, j;
-
-    // Check if valid first to avoid errors?
-    // Calculate selection times.
-    procData[0].selected = procData[0].arrival;
-    for(i = 1; i < fileData.proCount; i++)
-        procData[i].selected = procData[i-1].selected + procData[i-1].burst;
-
-    // Calculate finish times.
-    for(i = 0; i < fileData.proCount; i++)
-        procData[i].done = procData[i].selected + procData[i].burst;
-
-    // Print table
-    for(i = 0; i <= fileData.runFor; i++)
-    {
-        for(j = 0; j < fileData.proCount; j++)
-        {
-            if(procData[j].arrival == i)
-                fprintf(fptr, "Time %d: %s arrived\n", i, procData[j].name);
-            if(procData[j].selected == i)
-                fprintf(fptr, "Time %d: %s selected (burst %d)\n", i, procData[j].name, procData[j].burst);
-            if(procData[j].done == i)
-                fprintf(fptr, "Time %d: %s finished\n", i, procData[j].name);
-        }
     }
 
-    fprintf(fptr, "Finished at time %d\n\n", fileData.runFor);
-    for(i = 0; i < fileData.proCount; i++)
-        fprintf(fptr, "%s wait %d turnaround %d\n", procData[i].name, procData[i].selected - procData[i].arrival,
-                                                    procData[i].done - procData[i].arrival);
-    fclose(fptr);
 }
 
 void sjf(struct fileInfo fileData, struct procInfo *procData)
