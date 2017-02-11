@@ -61,7 +61,7 @@ int main()
 void roundRobin(struct fileInfo fileData, struct procInfo *procData)
 {
     FILE *fptr;
-    fptr = fopen("/Users/trentfreeman/Desktop/processes.out","w");
+    fptr = fopen("processes.out","w");
     fprintf(fptr, "%d processes\n", fileData.proCount);
     fprintf(fptr,"Using Round-Robin\n");
     fprintf(fptr,"Quantum %d\n\n", fileData.quantum);
@@ -173,6 +173,17 @@ void roundRobin(struct fileInfo fileData, struct procInfo *procData)
             if(activeP.burst == 0)
             {
                 fprintf(fptr, "Time %d: %s finished\n", (i+1), activeP.name);
+                for(j = 0; j < fileData.proCount; j++)
+                {
+                    if(strcmp(activeP.name, procData[j].name) == 0)
+                    {
+                        procData[j].done = i+1;
+                        procData[j].turnAround = procData[j].done - procData[j].arrival;
+                        procData[j].wait = procData[j].turnAround - procData[j].burst;
+
+                    }
+
+                }
                 numFinished++;
             }
         }
@@ -187,6 +198,11 @@ void roundRobin(struct fileInfo fileData, struct procInfo *procData)
     if(numFinished == fileData.proCount)
     {
         fprintf(fptr, "Finished at time %d\n\n", (i+1));
+    }
+
+    for(i = 0; i < fileData.proCount; i++)
+    {
+        fprintf(fptr, "%s wait %d turnaround %d\n", procData[i].name, procData[i].wait, procData[i].turnAround);
     }
 
 }
