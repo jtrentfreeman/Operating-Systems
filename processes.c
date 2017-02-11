@@ -173,6 +173,46 @@ void roundRobin(struct fileInfo fileData, struct procInfo *procData)
 
 }
 
+void fcfs(struct fileInfo fileData, struct procInfo *procData)
+{
+    FILE *fptr;
+    fptr = fopen("processes.out", "w");
+    fprintf(fptr, "%d processes\n", fileData.proCount);
+    fprintf(fptr, "Using First Come First Served\n\n");
+
+    int i, j;
+
+    // Check if valid first to avoid errors?
+    // Calculate selection times.
+    procData[0].selected = procData[0].arrival;
+    for(i = 1; i < fileData.proCount; i++)
+        procData[i].selected = procData[i-1].selected + procData[i-1].burst;
+
+    // Calculate finish times.
+    for(i = 0; i < fileData.proCount; i++)
+        procData[i].done = procData[i].selected + procData[i].burst;
+
+    // Print table
+    for(i = 0; i <= fileData.runFor; i++)
+    {
+        for(j = 0; j < fileData.proCount; j++)
+        {
+            if(procData[j].arrival == i)
+                fprintf(fptr, "Time %d: %s arrived\n", i, procData[j].name);
+            if(procData[j].selected == i)
+                fprintf(fptr, "Time %d: %s selected (burst %d)\n", i, procData[j].name, procData[j].burst);
+            if(procData[j].done == i)
+                fprintf(fptr, "Time %d: %s finished\n", i, procData[j].name);
+        }
+    }
+
+    fprintf(fptr, "Finished at time %d\n\n", fileData.runFor);
+    for(i = 0; i < fileData.proCount; i++)
+        fprintf(fptr, "%s wait %d turnaround %d\n", procData[i].name, procData[i].selected - procData[i].arrival,
+                                                    procData[i].done - procData[i].arrival);
+    fclose(fptr);
+}
+
 void sjf(struct fileInfo fileData, struct procInfo *procData)
 {
 	FILE *fptr;
