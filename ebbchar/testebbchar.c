@@ -13,7 +13,7 @@ int main()
 	int ret, fd;
 	char sendToString[BUFFER_LENGTH];
 	printf("Starting device test code example...\n");
-	fd = open("/dev/ebbchar", 0_RDWR);
+	fd = open("/dev/ebbchar", O_RDWR);
 	if(fd < 0)
 	{
 		perror("Failed to open the device...\n");
