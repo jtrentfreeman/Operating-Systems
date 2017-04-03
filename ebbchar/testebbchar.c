@@ -5,42 +5,53 @@
 #include <string.h>
 #include <unistd.h>
 
-#define BUFFER_LENGTH 1024
-static char receive[BUFFER_LENGTH];
+#define BUFFER 1024            // store bytes written to it up to a constant buffer size (at least 1KB)
+static char sBuffer[BUFFER];   // stores the string
 
 int main()
 {
-	int ret, fd;
-	char sendToString[BUFFER_LENGTH];
-	printf("Starting device test code example...\n");
-	fd = open("/dev/ebbchar", O_RDWR);
-	if(fd < 0)
-	{
-		perror("Failed to open the device...\n");
-		return errno;
-	}
+   int ret, thisFile;
+   char sendString[BUFFER];
+   printf("Starting device test code example...\n");
+   thisFile = open("/dev/ebbchar", O_RDWR);             
+   if (thisFile < 0)
+   {
+      perror("Failed to open the device...");
+      return errno;
+   }
 
-	printf("Type in a short string to send to the kernel module:\n");
-	scanf("%[^\n]%*c", stringToSend);
-	printf("Writing message to the device [%s].\n", stringToSend);
-	ret = write(fd, stringToSend, strlen(stringToSend));
-	if(ret < 0)
-	{
-		perror("Failed to write the message to the device.\n");
-		return errno;
-	}
-	
-	printf("Press ENTER to read back from the device.\n");
-	getchar();
+   printf("Type in a short string to send to the kernel module:\n");
+   scanf("%[^\n]%*c", sendString);               
+   
+   char newString[BUFFER];
+   if(strlen(sendString) > BUFFER)
+   {
+      strncpy(newString, sendString, 1024);
+      ret = write(thisFile, newString, strlen(newString));
+      printf("Writing message to the device [%s].\n", newString);
+   }
+   else
+   {
+      printf("Writing message to the device [%s].\n", sendString);
+      ret = write(thisFile, sendString, strlen(sendString)); 
+   }
+   if (ret < 0)
+   {
+      perror("Failed to write the message to the device.");
+      return errno;
+   }
 
-	printf("Reading from the device...\n");
-	ret = read(fd, receive, BUFFER_LENGTH);
-	if(ret < 0)
-	{
-		perror("Failed to read the message from the device.\n);
-		return errno;
-	}
-	printf("The message received is [%s].\n", receive);
-	printf("End of program.\n");
-	return 0;
+   printf("Press ENTER to read back from the device...\n");
+   getchar();
+
+   printf("Reading from the device...\n");
+   ret = read(thisFile, sBuffer, BUFFER);        
+   if (ret < 0)
+   {
+      perror("Failed to read the message from the device.");
+      return errno;
+   }
+   printf("The received message is: [%s]\n", sBuffer);
+   printf("End of the program\n");
+   return 0;
 }
