@@ -12,12 +12,12 @@ MODULE_AUTHOR("Freeman, Havekost, Pantino");
 MODULE_DESCRIPTION("COP4600 Programming Assignment 2");  
 MODULE_VERSION("1.0");         
 
-static int    mdNumber;                  
-static char   message[1024] = {0};           
+static int    mdNumber;                     // major device number
+static char   message[1024] = {0}; 			// store bytes written to it up to a constant buffer size (at least 1KB)          
 static short  messageLength;              
-static int    nOpens = 0;              
-static struct class*  charClass  = NULL; 
-static struct device* charDev = NULL; 
+static int    nOpens = 0;					// stores the number of times the device opens
+static struct class*  charClass  = NULL;    // class pointer
+static struct device* charDev = NULL; 		// device pointer
 
 static int     dev_open(struct inode *, struct file *);
 static int     dev_release(struct inode *, struct file *);
@@ -32,18 +32,23 @@ static struct file_operations fops =
    .release = dev_release,
 };
 
+// the driver will need to initialize itself
 static int __init ebbchar_init(void)
 {
    printk(KERN_INFO "EBBChar: Initializing the EBBChar LKM\n");
 
+   // obtaining a new major device number
    mdNumber = register_chrdev(0, DEVICE_NAME, &fops);
-   if (mdNumber<0)
+   if (mdNumber < 0)
    {
       printk(KERN_ALERT "EBBChar failed to register a major number\n");
       return mdNumber;
    }
+
+   // registering the driver
    printk(KERN_INFO "EBBChar: registered correctly with major number %d\n", mdNumber);
 
+   // register the device
    charClass = class_create(THIS_MODULE, CLASS_NAME);
    if (IS_ERR(charClass))
    {                
@@ -53,6 +58,7 @@ static int __init ebbchar_init(void)
    }
    printk(KERN_INFO "EBBChar: device class registered correctly\n");
 
+   // initialize the device
    charDev = device_create(charClass, NULL, MKDEV(mdNumber, 0), NULL, DEVICE_NAME);
    if (IS_ERR(charDev))
    {               
@@ -68,22 +74,27 @@ static int __init ebbchar_init(void)
 
 static void __exit ebbchar_exit(void)
 {
+   // de-register the device
    device_destroy(charClass, MKDEV(mdNumber, 0));     
    class_unregister(charClass);                          
-   class_destroy(charClass);                             
+   class_destroy(charClass);
+   
+   // de-register the major device numberc                         
    unregister_chrdev(mdNumber, DEVICE_NAME);             
    printk(KERN_INFO "EBBChar: Goodbye from the LKM!\n");
 }
 
-
+// open the device
 static int dev_open(struct inode *inodep, struct file *filep)
 {
    nOpens++;
+
+   // report using printk each time its character device is opened
    printk(KERN_INFO "EBBChar: Device has been opened %d time(s)\n", nOpens);
    return 0;
 }
 
-
+// read from the device
 static ssize_t dev_read(struct file *filep, char *buffer, size_t len, loff_t *offset)
 {
    int error_count = 0;
@@ -91,6 +102,7 @@ static ssize_t dev_read(struct file *filep, char *buffer, size_t len, loff_t *of
 
    if (error_count==0)
    {            
+      // report using printk each time its character device is read
       printk(KERN_INFO "EBBChar: Sent %d characters to the user\n", messageLength);
       return (messageLength=0);  
    }
@@ -101,21 +113,26 @@ static ssize_t dev_read(struct file *filep, char *buffer, size_t len, loff_t *of
    }
 }
 
-
+// write to the device
 static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, loff_t *offset)
 {
    sprintf(message, "%s(%zu letters)", buffer, len);   
-   messageLength = strlen(message);                 
+   messageLength = strlen(message);         
+   // report using printk each time its character device is written        
    printk(KERN_INFO "EBBChar: Received %zu characters from the user\n", len);
    return len;
 }
 
-
+// close the device
 static int dev_release(struct inode *inodep, struct file *filep)
 {
+   // report using printk each time its character device is closed
    printk(KERN_INFO "EBBChar: Device successfully closed\n");
    return 0;
 }
 
+// initialize the kernel module
 module_init(ebbchar_init);
+
+// deinitialize the kernel module
 module_exit(ebbchar_exit);
