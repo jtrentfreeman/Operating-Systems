@@ -10,10 +10,12 @@ static char sBuffer[BUFFER];   // stores the string
 
 int main()
 {
+
    int ret, thisFile;
    char sendString[BUFFER];
    printf("Starting device test code example...\n");
    thisFile = open("/dev/ebbchar", O_RDWR);             
+   
    if (thisFile < 0)
    {
       perror("Failed to open the device...");
@@ -23,6 +25,7 @@ int main()
    printf("Type in a short string to send to the kernel module:\n");
    scanf("%[^\n]%*c", sendString);               
    
+   // if not enough buffer is available to service a write request, the driver must only store up to the available amount
    char newString[BUFFER];
    if(strlen(sendString) > BUFFER)
    {
@@ -32,6 +35,7 @@ int main()
    }
    else
    {
+      // allow them to be read back out in FIFO fashion
       printf("Writing message to the device [%s].\n", sendString);
       ret = write(thisFile, sendString, strlen(sendString)); 
    }
@@ -52,6 +56,7 @@ int main()
       return errno;
    }
    printf("The received message is: [%s]\n", sBuffer);
+   memset(sBuffer, 0, sizeof(sBuffer));
    printf("End of the program\n");
    return 0;
 }
